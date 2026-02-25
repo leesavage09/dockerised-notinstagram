@@ -1,6 +1,9 @@
 services:
   db:
     image: postgres:14-alpine
+    restart: unless-stopped
+    networks:
+      - traefik-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file:
@@ -8,13 +11,16 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${NOTINSTAGRAM_DATABASE_USER} -d ${NOTINSTAGRAM_DATABASE}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - traefik-network
     ports:
       - "6379:6379"
     healthcheck:
@@ -24,11 +30,18 @@ services:
       retries: 5
 
   web:
-    build:
-      context: .
-      args:
-        RAILS_ENV: production
-        NODE_ENV: production
+    image: leesavage09/notinstagram:latest
+    container_name: notinstagram
+    restart: unless-stopped
+    networks:
+      - traefik-network
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.notinstagram.rule=Host(`notinstagram.exp.leesavage.co.uk`)'
+      - 'traefik.http.routers.notinstagram.entrypoints=websecure'
+      - 'traefik.http.routers.notinstagram.tls=true'
+      - 'traefik.http.routers.notinstagram.tls.certresolver=le'
+      - 'traefik.http.services.notinstagram.loadbalancer.server.port=3000'
     ports:
       - "3000:3000"
     depends_on:
@@ -44,3 +57,7 @@ services:
 volumes:
   postgres_data:
   rails_storage:
+
+networks:
+  traefik-network:
+    external: true

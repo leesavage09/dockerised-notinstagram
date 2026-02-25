@@ -54,7 +54,7 @@ jobs:
             cat > .env <<EOF
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ secrets.POSTGRES_DB }}            
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}          
             RAILS_ENV=${{ secrets.RAILS_ENV }}
             NODE_ENV=${{ secrets.NODE_ENV }}
             RAILS_SERVE_STATIC_FILES=${{ secrets.RAILS_SERVE_STATIC_FILES }}
