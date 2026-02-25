@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: notinstagram
+      POSTGRES_PASSWORD: notinstagram
+      POSTGRES_DB: notinstagram_production
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notinstagram -d notinstagram_production"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      args:
+        RAILS_ENV: production
+        NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: production
+      NODE_ENV: production
+      RAILS_SERVE_STATIC_FILES: "true"
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_MAX_THREADS: "5"
+      PORT: "3000"
+      # Database
+      NOTINSTAGRAM_DATABASE_HOST: db
+      NOTINSTAGRAM_DATABASE_PORT: "5432"
+      NOTINSTAGRAM_DATABASE: notinstagram_production
+      NOTINSTAGRAM_DATABASE_USER: notinstagram
+      NOTINSTAGRAM_DATABASE_PASSWORD: notinstagram
+      DATABASE_URL: "postgres://notinstagram:notinstagram@db:5432/notinstagram_production"
+      # Redis (for Action Cable)
+      REDIS_URL: "redis://redis:6379/1"
+      # Rails secret - generate with: docker compose run --rm web bundle exec rails secret
+      SECRET_KEY_BASE: "change_me_generate_a_real_secret_with_rails_secret"
+      # AWS S3 (fill these in with real values)
+      AWS_URL: "${AWS_URL:-}"
+      S3_BUCKET: "${S3_BUCKET:-}"
+      AWS_ACCESS_KEY: "${AWS_ACCESS_KEY:-}"
+      AWS_SECRET_KEY: "${AWS_SECRET_KEY:-}"
+    volumes:
+      - rails_storage:/app/storage
+
+volumes:
+  postgres_data:
+  rails_storage:

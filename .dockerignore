@@ -1,0 +1,13 @@
+.git
+.gitignore
+log/*
+tmp/*
+node_modules
+public/packs
+public/packs-test
+.bundle
+vendor/bundle
+.byebug_history
+.env
+.env.*
+!.env.docker
