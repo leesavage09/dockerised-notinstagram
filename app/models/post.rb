@@ -7,8 +7,6 @@
 # t.index ["author_id"], name: "index_posts_on_author_id"
 # t.index ["created_at"], name: "index_posts_on_created_at"
 
-require_relative "../services/amazon_s3_service.rb"
-
 class Post < ApplicationRecord
   before_validation :ensure_image_key
 
@@ -50,20 +48,13 @@ class Post < ApplicationRecord
   end
 
   def image_url
-    if self[:image_url] && self[:image_url].include?("picsum.photos")
-      return self[:image_url] if self[:image_url]
-      return nil
-    end
-    return ENV["AWS_URL"] + "/" + self[:image_url] if self[:image_url]
-    nil
+    return nil unless self[:image_url]
+    return self[:image_url] if self[:image_url].start_with?("http")
+    "/uploads/" + self[:image_url]
   end
 
-  def image_s3_post_url
-    presigned = AmazonS3Service.get_presigned_post(key: "post/" + self.image_key + ".jpg")
-    {
-      url: presigned.url,
-      url_fields: presigned.fields,
-    }
+  def upload_dir
+    Rails.root.join("public", "uploads", "post")
   end
 
   class << self

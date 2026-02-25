@@ -16,7 +16,7 @@ Rails.application.routes.draw do
     end
 
     resource :session, only: [:create, :destroy]
-    get "session/avatar_presigned_url", to: "sessions#avatar_presigned_url", as: "avatar_presigned_url"
+    post "session/upload_avatar", to: "sessions#upload_avatar", as: "upload_avatar"
 
     resources :hashtags, only: [:show]
 

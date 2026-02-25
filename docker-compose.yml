@@ -30,6 +30,7 @@ services:
       retries: 5
 
   web:
+    build: .
     image: leesavage09/notinstagram:latest
     container_name: notinstagram
     restart: unless-stopped
@@ -53,10 +54,12 @@ services:
       - .env
     volumes:
       - rails_storage:/app/storage
+      - uploads_data:/app/public/uploads
 
 volumes:
   postgres_data:
   rails_storage:
+  uploads_data:
 
 networks:
   traefik-network:

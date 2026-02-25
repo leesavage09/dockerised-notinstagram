@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as ApiUtil from '../../util/api'
 import { imageEditorSelector } from './image_editor_slice'
 import { Utilitys as ImageUtil } from '../../util/image'
-import * as AmazonS3 from '../../util/amazon_s3'
 
 const slice_name = 'post'
 
@@ -11,19 +10,9 @@ const createPost = createAsyncThunk(
     async (arg, thunkAPI) => {
         try {
             const img = imageEditorSelector.processedImage()(thunkAPI.getState())
-            const p = await Promise.all([
-                ImageUtil.createFileWithImage(img),
-                ApiUtil.createPost({ caption: arg.caption })
-            ])
-            try {
-                const imageUrl = await AmazonS3.sendBlobToAmazonS3(p[0], p[1].data.s3data)
-                const responce = await ApiUtil.updatePost({ id: p[1].data.id, image_url: imageUrl })
-                return responce.data
-            }
-            catch (e){
-                ApiUtil.destroyPost({ id: p[1].data.id})
-                return thunkAPI.rejectWithValue(e)
-            }
+            const imageBlob = await ImageUtil.createFileWithImage(img)
+            const response = await ApiUtil.createPost({ caption: arg.caption, image: imageBlob })
+            return response.data
         }
         catch (e) {
             return thunkAPI.rejectWithValue(e)

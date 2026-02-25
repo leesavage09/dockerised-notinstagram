@@ -17,9 +17,14 @@ class Api::SessionsController < ApplicationController
     render :show
   end
 
-  def avatar_presigned_url
-    data = logged_in_user.image_s3_post_url
-    render json: data, status: :ok
+  def upload_avatar
+    user = logged_in_user
+    if params[:image]
+      save_upload(params[:image], user.upload_dir, "#{user.image_key}.jpg")
+      user.update!(image_url: "avatar/#{user.image_key}.jpg")
+    end
+    @user = user
+    render :show, status: :ok
   end
 
   private

@@ -14,8 +14,6 @@
 # t.index ["session_token"], name: "index_users_on_session_token", unique: true
 # t.index ["username"], name: "index_users_on_username", unique: true
 
-require_relative "../services/amazon_s3_service.rb"
-
 class User < ApplicationRecord
   validates :name,
             length: { maximum: 30, message: "Name must be less than 30 characters" }
@@ -97,20 +95,13 @@ class User < ApplicationRecord
   end
 
   def image_url
-    if self[:image_url] && self[:image_url].include?("randomuser.me")
-      return self[:image_url] if self[:image_url]
-      return nil
-    end
-    return ENV["AWS_URL"] + "/" + self[:image_url] if self[:image_url]
-    nil
+    return nil unless self[:image_url]
+    return self[:image_url] if self[:image_url].start_with?("http")
+    "/uploads/" + self[:image_url]
   end
 
-  def image_s3_post_url
-    presigned = AmazonS3Service.get_presigned_post(key: "avatar/" + self.image_key + ".jpg")
-    {
-      url: presigned.url,
-      url_fields: presigned.fields,
-    }
+  def upload_dir
+    Rails.root.join("public", "uploads", "avatar")
   end
 
   class << self

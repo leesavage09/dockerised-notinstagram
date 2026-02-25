@@ -26,5 +26,12 @@ class ApplicationController < ActionController::API
     def require_user_logged_in
         render json: {errors: ['unauthorized not logged in']},  status: :unauthorized if !logged_in?
     end
-    
+
+    def save_upload(uploaded_file, dir, filename)
+        FileUtils.mkdir_p(dir)
+        File.open(File.join(dir, filename), "wb") do |f|
+            f.write(uploaded_file.read)
+        end
+    end
+
 end

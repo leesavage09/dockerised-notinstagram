@@ -7,19 +7,12 @@
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="notinstagram is a clone of instagram" />
     
-    <% if Rails.env.production? && ENV["DISABLE_AWS_HOSTING"] === "false" %>
-        <link rel="preconnect" href="<%= ENV["AWS_URL"] %>">
-        <link rel="icon" href="<%= ENV["AWS_URL"] %>/favicon.ico?v1" />
-        <script src="<%= ENV["AWS_URL"] %>/scripts/bundle.js.gz"></script>
-        <link rel="stylesheet" media="screen" href="<%= ENV["AWS_URL"] %>/scripts/style.css.gz">
-      <% elsif Rails.env.production? %>
-        <link rel="icon" href="/favicon.ico?v1" />
-        <%= javascript_pack_tag "application" %>
-        <%= stylesheet_pack_tag "style-production" %>
-      <% else %>
-        <link rel="icon" href="/favicon.ico?v1" />
-        <%= javascript_pack_tag "application" %>
-        <%= stylesheet_pack_tag "style-development" %>
+    <link rel="icon" href="/favicon.ico?v1" />
+    <%= javascript_pack_tag "application" %>
+    <% if Rails.env.production? %>
+      <%= stylesheet_pack_tag "style-production" %>
+    <% else %>
+      <%= stylesheet_pack_tag "style-development" %>
     <% end %>
     
     <%= react_component("Index") %>

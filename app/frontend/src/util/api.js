@@ -29,8 +29,12 @@ export function logoutUser() {
     { withCredentials: true })
 }
 
-export function getPresignedUrlForUserAvatar() {
-  return axios.get('/api/session/avatar_presigned_url')
+export function uploadAvatar(imageBlob) {
+  const formData = new FormData()
+  formData.append('image', imageBlob, 'avatar.jpg')
+  return axios.post('/api/session/upload_avatar', formData, {
+    headers: { 'content-type': 'multipart/form-data' }
+  })
 }
 
 export function createUser(user) {
@@ -78,11 +82,18 @@ export function unfollowHashtag(hashtag_id) {
 }
 
 export function createPost(arg) {
-  return axios.post('/api/posts', { caption: arg.caption })
+  const formData = new FormData()
+  formData.append('caption', arg.caption)
+  if (arg.image) {
+    formData.append('image', arg.image, 'post.jpg')
+  }
+  return axios.post('/api/posts', formData, {
+    headers: { 'content-type': 'multipart/form-data' }
+  })
 }
 
 export function updatePost(arg) {
-  return axios.patch(`/api/posts/${arg.id}`, { image_url: arg.image_url })
+  return axios.patch(`/api/posts/${arg.id}`, { caption: arg.caption })
 }
 
 export function destroyPost(arg) {

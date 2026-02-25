@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as ApiUtil from '../../util/api'
 import { imageEditorSelector } from '../slice/image_editor_slice'
 import { Utilitys as ImageUtil } from '../../util/image'
-import * as AmazonS3 from '../../util/amazon_s3'
 import { profileActions } from '../slice/profile_slice'
 import { followersActions } from '../slice/followers_slice'
 
@@ -58,14 +57,9 @@ const updateAvatar = createAsyncThunk(
     async (arg, thunkAPI) => {
         try {
             const img = imageEditorSelector.processedImage()(thunkAPI.getState())
-            const user = sessionSelector.loggedInUser()(thunkAPI.getState())
-            const p = await Promise.all([
-                ImageUtil.createFileWithImage(img),
-                ApiUtil.getPresignedUrlForUserAvatar()
-            ])
-            const imageUrl = await AmazonS3.sendBlobToAmazonS3(p[0], p[1].data)
-            const responce = await ApiUtil.updateUser({ ...user, image_url: imageUrl })
-            return responce.data
+            const imageBlob = await ImageUtil.createFileWithImage(img)
+            const response = await ApiUtil.uploadAvatar(imageBlob)
+            return response.data
         }
         catch (e) {
             return thunkAPI.rejectWithValue(e)

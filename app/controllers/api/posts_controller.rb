@@ -41,9 +41,14 @@ class Api::PostsController < ApplicationController
       post.caption = params.require(:caption)
       tag_post(post)
       post.save!
-      @post = post
-      @s3data = post.image_s3_post_url
-      render :show_s3, status: :ok
+
+      if params[:image]
+        save_upload(params[:image], post.upload_dir, "#{post.image_key}.jpg")
+        post.update!(image_url: "post/#{post.image_key}.jpg")
+      end
+
+      @post, @post_comments, @associated_users = Post.get_details_by_post_id(post.id)
+      render :show, status: :ok
     rescue Exception => e
       render json: e, status: 401
     end
@@ -52,7 +57,10 @@ class Api::PostsController < ApplicationController
   def update
     post = Post.find_by(id: params.require(:id))
     post.caption = params[:caption] if params[:caption]
-    post.image_url = params[:image_url] if params[:image_url]
+    if params[:image]
+      save_upload(params[:image], post.upload_dir, "#{post.image_key}.jpg")
+      post.image_url = "post/#{post.image_key}.jpg"
+    end
     if post.save()
       @post, @post_comments, @associated_users = Post.get_details_by_post_id(post.id)
       render :show, status: :ok

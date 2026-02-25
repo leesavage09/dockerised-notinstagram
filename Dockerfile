@@ -40,6 +40,9 @@ ENV RAILS_ENV=${RAILS_ENV} \
 # Secret key base placeholder for asset precompilation only
 RUN SECRET_KEY_BASE=placeholder bundle exec rails webpacker:compile
 
+# Create upload directories for local file storage
+RUN mkdir -p /app/public/uploads/post /app/public/uploads/avatar
+
 EXPOSE 3000
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

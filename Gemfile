@@ -19,7 +19,7 @@ gem 'jbuilder', '~> 2.7'
 gem 'bcrypt', '~> 3.1', '>= 3.1.13'
 gem 'webpacker', '~> 5.0', '>= 5.0.1'
 gem 'react-rails', '~> 2.6', '>= 2.6.1'
-gem 'aws-sdk', '~> 3.0', '>= 3.0.1'
+
 
 # Use Active Storage variant
 # gem 'image_processing', '~> 1.2'

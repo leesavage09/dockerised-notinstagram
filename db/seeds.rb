@@ -8,11 +8,27 @@
 
 require "net/http"
 require "json"
+require "fileutils"
+require "open-uri"
 
 @allPosts = []
 @allUsers = []
 @allHashtags = []
 @allComments = []
+
+UPLOAD_BASE = Rails.root.join("public", "uploads")
+
+def download_image(url, dir, filename)
+  FileUtils.mkdir_p(dir)
+  filepath = File.join(dir, filename)
+  URI.open(url) do |image|
+    File.open(filepath, "wb") { |f| f.write(image.read) }
+  end
+  true
+rescue => e
+  puts "Warning: Could not download #{url}: #{e.message}"
+  false
+end
 
 def create_users
   url = "https://randomuser.me/api/?results=70&password=upper,lower,7-14&seed=notinsta&inc=name,email,login,picture"
@@ -36,8 +52,11 @@ def create_users
     user.email = data["email"]
     user.username = data["login"]["username"]
     user.password = data["login"]["password"]
-    user.image_url = data["picture"]["large"]
     if user.save()
+      avatar_dir = UPLOAD_BASE.join("avatar")
+      if download_image(data["picture"]["large"], avatar_dir, "#{user.image_key}.jpg")
+        user.update!(image_url: "avatar/#{user.image_key}.jpg")
+      end
       @allUsers << user
     end
   }
@@ -69,7 +88,6 @@ def create_hashtags
 end
 
 def create_posts
-  num = 10 #range = 10..992
   @allUsers.each { |user|
     rand(3..5).times do
       hashtags = @allHashtags.sample(rand(2..7))
@@ -79,8 +97,14 @@ def create_posts
         post.caption << " " + hashtag.name
       }
       tag_post(hashtags, post)
-      post.image_url = "photo-seeds/#{num}.jpg"
-      num = num + 1
+
+      # Download a random placeholder image from picsum.photos
+      post_dir = UPLOAD_BASE.join("post")
+      picsum_url = "https://picsum.photos/640/640"
+      if download_image(picsum_url, post_dir, "#{post.image_key}.jpg")
+        post.image_url = "post/#{post.image_key}.jpg"
+      end
+
       if post.save()
         @allPosts << post
       end
